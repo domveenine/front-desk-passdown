@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <title>Daily Front Desk Pass Down</title>
+<!-- Fixed autosave restore so checkbox boolean values cannot appear in text areas. -->
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
 :root {
@@ -802,6 +803,11 @@ input[type="radio"] {
             if (el.type === "checkbox" || el.type === "radio") {
                 el.checked = Boolean(data[key]);
             } else {
+                // Prevent old checkbox/radio auto-save values like false from being restored into text fields.
+                if (typeof data[key] !== "string") {
+                    el.value = "";
+                    return;
+                }
                 el.value = data[key];
                 if (el.tagName === "TEXTAREA") autoGrowTextArea(el);
             }
