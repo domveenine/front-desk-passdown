@@ -1,0 +1,746 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Daily Front Desk Pass Down</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+    :root {
+        --blue: #003b75;
+        --light-blue: #eaf2fb;
+        --gray: #f4f6f8;
+        --border: #c9d3df;
+        --text: #1f2933;
+    }
+
+    body {
+        font-family: Arial, Helvetica, sans-serif;
+        background: #eef2f6;
+        color: var(--text);
+        margin: 0;
+        padding: 24px;
+    }
+
+    .page {
+        max-width: 980px;
+        margin: 0 auto;
+        background: #ffffff;
+        border: 1px solid var(--border);
+        box-shadow: 0 2px 10px rgba(0,0,0,.08);
+        padding: 28px;
+    }
+
+    .topbar {
+        background: var(--blue);
+        color: #ffffff;
+        padding: 18px 20px;
+        border-radius: 6px;
+        margin-bottom: 18px;
+    }
+
+    .topbar h1 {
+        margin: 0;
+        font-size: 26px;
+        letter-spacing: .2px;
+    }
+
+    .topbar p {
+        margin: 6px 0 0;
+        font-size: 14px;
+        opacity: .95;
+    }
+
+    .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin: 16px 0 22px;
+    }
+
+    button {
+        background: var(--blue);
+        color: #ffffff;
+        border: none;
+        border-radius: 5px;
+        padding: 10px 14px;
+        font-size: 14px;
+        cursor: pointer;
+    }
+
+    button.secondary {
+        background: #5b6778;
+    }
+
+    button:hover {
+        opacity: .92;
+    }
+
+    .note {
+        background: #fff7e6;
+        border: 1px solid #f2d39b;
+        padding: 10px 12px;
+        border-radius: 5px;
+        font-size: 13px;
+        margin-bottom: 18px;
+    }
+
+    h2 {
+        background: var(--light-blue);
+        color: var(--blue);
+        padding: 10px 12px;
+        border-left: 6px solid var(--blue);
+        font-size: 18px;
+        margin: 24px 0 12px;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 16px;
+    }
+
+    th {
+        background: var(--gray);
+        text-align: left;
+        font-weight: bold;
+    }
+
+    th, td {
+        border: 1px solid var(--border);
+        padding: 9px;
+        vertical-align: top;
+    }
+
+    .label {
+        width: 28%;
+        font-weight: bold;
+        background: #fafbfc;
+    }
+
+    input[type="text"],
+    input[type="date"],
+    input[type="time"],
+    input[type="number"],
+    select,
+    textarea {
+        width: 100%;
+        box-sizing: border-box;
+        border: 1px solid #aeb8c4;
+        border-radius: 4px;
+        padding: 7px;
+        font-family: Arial, Helvetica, sans-serif;
+        font-size: 14px;
+        background: #ffffff;
+    }
+
+    textarea {
+        min-height: 82px;
+        resize: vertical;
+    }
+
+    .large-textarea {
+        min-height: 130px;
+    }
+
+    .checkbox-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 18px;
+        align-items: center;
+    }
+
+    label {
+        cursor: pointer;
+    }
+
+    input[type="checkbox"],
+    input[type="radio"] {
+        transform: scale(1.15);
+        margin-right: 6px;
+    }
+
+    .task-line {
+        display: grid;
+        grid-template-columns: 28px 1fr;
+        gap: 8px;
+        align-items: center;
+        margin-bottom: 8px;
+    }
+
+    .footer {
+        margin-top: 24px;
+        font-size: 12px;
+        color: #5b6778;
+        text-align: center;
+    }
+
+    @media print {
+        body {
+            background: #ffffff;
+            padding: 0;
+        }
+
+        .page {
+            box-shadow: none;
+            border: none;
+            padding: 0;
+        }
+
+        .actions,
+        .note {
+            display: none;
+        }
+
+        button {
+            display: none;
+        }
+
+        textarea {
+            min-height: 70px;
+        }
+
+        h2 {
+            break-after: avoid;
+        }
+
+        table {
+            break-inside: avoid;
+        }
+    }
+
+@media print {
+  @page { size: Letter portrait; margin: 0.3in; }
+  html, body { zoom: 0.72; background:#fff !important; }
+  .page { max-width:none; width:100%; box-shadow:none !important; border:none !important; padding:0 !important; margin:0 !important; }
+  .actions, .note { display:none !important; }
+  button { display:none !important; }
+  h2 { margin:8px 0 4px !important; padding:4px 6px !important; font-size:13px !important; }
+  table, tr, td, th { font-size:10px !important; padding:3px !important; }
+  input, select, textarea { font-size:10px !important; padding:2px !important; }
+  textarea { min-height:34px !important; }
+  .large-textarea { min-height:48px !important; }
+  .task-line { margin-bottom:2px !important; }
+  .footer { margin-top:6px !important; font-size:9px !important; }
+}
+
+.compact-staffing td {
+    padding: 6px;
+}
+.compact-staffing .label {
+    width: 16%;
+    white-space: nowrap;
+}
+.required-follow-up {
+    background: #b00020 !important;
+    color: #ffffff !important;
+    border-left: 6px solid #7a0016 !important;
+}
+
+
+/* Wrap long text in Sections 3 and 8 */
+#passdown-list .task-line,
+#section9 .task-line,
+#passdown-list input[type="text"],
+#section9 input[type="text"]{
+    width:100%;
+}
+
+#passdown-list input[type="text"],
+#section9 input[type="text"]{
+    white-space:normal;
+    overflow-wrap:anywhere;
+    word-break:break-word;
+}
+
+#passdown-list .task-line input,
+#section9 .task-line input{
+    min-width:0;
+}
+
+
+/* Reliable wrapping bullet text areas */
+.task-line {
+    display: grid;
+    grid-template-columns: 20px minmax(0, 1fr);
+    gap: 8px;
+    align-items: start;
+    width: 100%;
+    box-sizing: border-box;
+}
+.task-line textarea {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    white-space: pre-wrap;
+    overflow-wrap: break-word;
+    word-break: break-word;
+    resize: vertical;
+    overflow: hidden;
+    line-height: 1.35;
+    min-height: 34px;
+}
+
+
+/* Two-page portrait print/PDF layout */
+@media print {
+  @page {
+    size: Letter portrait;
+    margin: 0.45in;
+  }
+
+  html, body {
+    zoom: 1 !important;
+    background: #ffffff !important;
+    height: auto !important;
+  }
+
+  body {
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .page {
+    width: 100% !important;
+    max-width: none !important;
+    min-height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+
+  .actions,
+  .note,
+  button {
+    display: none !important;
+  }
+
+  .topbar {
+    padding: 12px 14px !important;
+    margin-bottom: 10px !important;
+  }
+
+  .topbar h1 {
+    font-size: 22px !important;
+  }
+
+  .topbar p {
+    font-size: 12px !important;
+  }
+
+  h2 {
+    margin: 12px 0 7px !important;
+    padding: 7px 9px !important;
+    font-size: 15px !important;
+    break-after: avoid !important;
+    page-break-after: avoid !important;
+  }
+
+  table {
+    margin-bottom: 12px !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  th, td {
+    font-size: 12px !important;
+    padding: 6px !important;
+  }
+
+  input,
+  select,
+  textarea {
+    font-size: 12px !important;
+    padding: 5px !important;
+  }
+
+  textarea {
+    min-height: 48px !important;
+    overflow: visible !important;
+  }
+
+  .large-textarea {
+    min-height: 78px !important;
+  }
+
+  .task-line {
+    margin-bottom: 6px !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  .task-line textarea {
+    min-height: 34px !important;
+    overflow: visible !important;
+  }
+
+  .checkbox-row {
+    gap: 12px !important;
+  }
+
+  .compact-staffing td {
+    padding: 5px !important;
+  }
+
+  .page-two-start {
+    break-before: page !important;
+    page-break-before: always !important;
+    margin-top: 0 !important;
+  }
+
+  .footer {
+    margin-top: 10px !important;
+    font-size: 10px !important;
+  }
+}
+
+</style>
+<script>
+
+function autoGrowTextArea(el) {
+    el.style.height = "auto";
+    el.style.height = (el.scrollHeight + 2) + "px";
+}
+function createBulletTextarea(placeholderText) {
+    return '<span>&bull;</span><textarea rows="1" placeholder="' + placeholderText + '" oninput="autoGrowTextArea(this)"></textarea>';
+}
+
+function saveAsPDF() {
+    window.print();
+}
+
+
+function clearForm() {
+    if (!confirm("Are you sure you want to clear the entire form? This will also remove the auto-saved data.")) {
+        return;
+    }
+
+    document.querySelectorAll("input, textarea, select").forEach(el => {
+        if (el.type === "checkbox" || el.type === "radio") {
+            el.checked = false;
+        } else if (el.tagName === "SELECT") {
+            el.selectedIndex = 0;
+        } else {
+            el.value = "";
+        }
+    });
+
+    try {
+        localStorage.removeItem("frontDeskPassdownAutoSave");
+    } catch (e) {}
+
+    setCurrentDateAndShift();
+}
+
+function formatLocalDate(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+}
+
+function getCurrentShift(date) {
+    const minutes = date.getHours() * 60 + date.getMinutes();
+
+    const morningStart = 7 * 60;          // 7:00 AM
+    const eveningStart = 15 * 60;         // 3:00 PM
+    const nightAuditStart = 23 * 60;      // 11:00 PM
+
+    if (minutes >= morningStart && minutes < eveningStart) {
+        return "Morning Shift";
+    }
+
+    if (minutes >= eveningStart && minutes < nightAuditStart) {
+        return "Evening Shift";
+    }
+
+    return "Night Audit";
+}
+
+function updateShiftTime() {
+    const shift = document.getElementById("shift").value;
+    const shiftTime = document.getElementById("shiftTime");
+
+    const times = {
+        "Morning Shift": "7:00 AM - 3:30 PM",
+        "Evening Shift": "3:00 PM - 11:30 PM",
+        "Night Audit": "11:00 PM - 7:30 AM"
+    };
+
+    shiftTime.value = times[shift] || "";
+}
+
+function setCurrentDateAndShift() {
+    const now = new Date();
+
+    const dateField = document.getElementById("date");
+    if (dateField) {
+        dateField.value = formatLocalDate(now);
+    }
+
+    const shiftField = document.getElementById("shift");
+    if (shiftField) {
+        shiftField.value = getCurrentShift(now);
+    }
+
+    updateShiftTime();
+}
+
+window.addEventListener("DOMContentLoaded", setCurrentDateAndShift);
+
+
+function addPassdownLine() {
+    const c=document.getElementById('passdown-list');
+    if(!c) return;
+    const row=document.createElement('div');
+    row.className='task-line';
+    row.innerHTML=createBulletTextarea('Pass down item');
+    c.appendChild(row);
+}
+
+function addBulletLine(containerId){
+ const c=document.getElementById(containerId);
+ const row=document.createElement('div');
+ row.className='task-line';
+ const placeholder = containerId === 'section9' ? 'Outstanding task' : 'Item';
+ row.innerHTML=createBulletTextarea(placeholder);
+ c.appendChild(row);
+}
+
+
+// Auto-save form data every 1 minute using localStorage
+const AUTO_SAVE_KEY = "frontDeskPassdownAutoSave";
+
+function saveFormData() {
+    const data = {};
+    document.querySelectorAll("input, textarea, select").forEach((el, index) => {
+        const key = el.id || el.name || ("field_" + index);
+        if (el.type === "checkbox" || el.type === "radio") {
+            data[key] = el.checked;
+        } else {
+            data[key] = el.value;
+        }
+    });
+    localStorage.setItem(AUTO_SAVE_KEY, JSON.stringify(data));
+}
+
+function restoreFormData() {
+    const saved = localStorage.getItem(AUTO_SAVE_KEY);
+    if (!saved) return;
+    const data = JSON.parse(saved);
+    document.querySelectorAll("input, textarea, select").forEach((el, index) => {
+        const key = el.id || el.name || ("field_" + index);
+        if (!(key in data)) return;
+        if (el.type === "checkbox" || el.type === "radio") {
+            el.checked = data[key];
+        } else {
+            el.value = data[key];
+            if (el.tagName === "TEXTAREA") autoGrowTextArea(el);
+        }
+    });
+}
+
+window.addEventListener("DOMContentLoaded", () => {
+    restoreFormData();
+    setInterval(saveFormData, 60000);
+    document.querySelectorAll("input, textarea, select").forEach(el=>{
+        el.addEventListener("change", saveFormData);
+    });
+});
+
+</script>
+</head>
+<body>
+<div class="page">
+
+    <div class="topbar">
+        <h1>Daily Front Desk Pass Down</h1>
+        <p>Interactive form for Morning Shift, Evening Shift, and Night Audit</p>
+    </div>
+
+    <div class="actions">
+        <button onclick="saveAsPDF()">Download PDF</button>
+        
+        
+        <button class="secondary" onclick="clearForm()">Clear Form</button>
+    </div>
+
+    <div class="note">Complete the form, then select <strong>Download PDF</strong> to save a copy of the completed form.<br><br>To share it, create a new Outlook email, attach the saved PDF, and send it to the appropriate recipients.</div>
+
+    <h2>Shift Information</h2>
+    <table>
+        <tr>
+            <td class="label">Date</td>
+            <td><input type="date" id="date"></td>
+            <td class="label">Shift</td>
+            <td>
+                <select id="shift" onchange="updateShiftTime()">
+                    <option value="">Select Shift</option>
+                    <option value="Morning Shift">Morning Shift</option>
+                    <option value="Evening Shift">Evening Shift</option>
+                    <option value="Night Audit">Night Audit</option>
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <td class="label">Shift Time</td>
+            <td><input type="text" id="shiftTime" placeholder="Example: 7:00 AM - 3:30 PM"></td>
+            <td class="label">Completed By</td>
+            <td><input type="text"></td>
+        </tr>
+    </table>
+
+    <h2>1. Overall Hotel Snapshot</h2>
+    <table>
+        <tr>
+            <td class="label">Occupancy %</td>
+            <td><input type="text" placeholder="Example: 41.64%"></td>
+            <td class="label">Rooms Available</td>
+            <td><input type="text"></td>
+        </tr>
+        <tr>
+            <td class="label">Out of Order Rooms</td>
+            <td><input type="text"></td>
+            <td class="label">In House Rooms</td>
+            <td><input type="text"></td>
+        </tr>
+        <tr>
+            <td class="label">Arrivals Remaining</td>
+            <td><input type="text"></td>
+            <td class="label">Departures Remaining</td>
+            <td><input type="text"></td>
+        </tr>
+    </table>
+
+    <h2>2. Staffing On Duty</h2>
+    <table class="compact-staffing">
+        <tr>
+            <td class="label">Front Desk</td>
+            <td><input type="text"></td>
+            <td class="label">Security</td>
+            <td><input type="text"></td>
+        </tr>
+        <tr>
+            <td class="label">Bell / Shuttle</td>
+            <td><input type="text"></td>
+            <td class="label">Bar / Restaurant</td>
+            <td><input type="text"></td>
+        </tr>
+        <tr>
+            <td class="label">Engineering</td>
+            <td><input type="text"></td>
+            <td class="label">Lobby Attendant</td>
+            <td><input type="text"></td>
+        </tr>
+        <tr>
+            <td class="label">Manager On Duty</td>
+            <td colspan="3"><input type="text"></td>
+        </tr>
+    </table>
+
+    <h2>3. General Pass Down &amp; Service Recovery</h2>
+<div id="passdown-list">
+  <div class="task-line"><span>&bull;</span><textarea rows="1" placeholder="Pass down item" oninput="autoGrowTextArea(this)"></textarea></div>
+  <div class="task-line"><span>&bull;</span><textarea rows="1" placeholder="Pass down item" oninput="autoGrowTextArea(this)"></textarea></div>
+  <div class="task-line"><span>&bull;</span><textarea rows="1" placeholder="Pass down item" oninput="autoGrowTextArea(this)"></textarea></div>
+  <div class="task-line"><span>&bull;</span><textarea rows="1" placeholder="Pass down item" oninput="autoGrowTextArea(this)"></textarea></div>
+  <div class="task-line"><span>&bull;</span><textarea rows="1" placeholder="Pass down item" oninput="autoGrowTextArea(this)"></textarea></div>
+</div>
+<button type="button" class="secondary" onclick="addPassdownLine()">+ Add Another Item</button>
+<h2>4. VIP, Special Arrivals &amp; Housekeeping Notes</h2>
+<div id="section5">
+<div class="task-line"><span>&bull;</span><input type="text" placeholder="VIP, arrival, or housekeeping note"></div>
+<div class="task-line"><span>&bull;</span><input type="text" placeholder="VIP, arrival, or housekeeping note"></div>
+</div>
+<button type="button" class="secondary" onclick="addBulletLine('section5')">+ Add Another Item</button>
+<h2>5. Cash Handling</h2>
+    <table>
+        <tr>
+            <td class="label">Bank Count</td>
+            <td><input type="text" placeholder="Example: $200"></td>
+            <td class="label">Cash Drop Completed</td>
+            <td>
+                <label><input type="radio" name="cashdrop"> Yes</label>
+                <label><input type="radio" name="cashdrop"> No</label>
+                <label><input type="radio" name="cashdrop"> N/A</label>
+            </td>
+        </tr>
+        <tr>
+            <td class="label">Cash Count Balanced</td>
+            <td>
+                <label><input type="radio" name="balanced"> Yes</label>
+                <label><input type="radio" name="balanced"> No</label>
+            </td>
+            <td class="label">Cash Handling Notes</td>
+            <td><input type="text"></td>
+        </tr>
+    </table>
+    <textarea placeholder="Enter any cash count issues, drawer issues, over/short notes, safe concerns, or deposit notes."></textarea>
+
+    <h2>6. Mobile Key & GXP Compliance</h2>
+    <table>
+        <tr>
+            <td class="label">Mobile Key Room Ready Notifications</td>
+            <td><input type="text" placeholder="Example: 91%"></td>
+            <td class="label">Mobile Key Delivery Rate</td>
+            <td><input type="text" placeholder="Example: 76%"></td>
+        </tr>
+        <tr>
+            <td class="label">GXP Completed</td>
+            <td>
+                <label><input type="radio" name="gxp"> Yes</label>
+                <label><input type="radio" name="gxp"> No</label>
+                <label><input type="radio" name="gxp"> In Progress</label>
+            </td>
+            <td class="label">Digital Check-In Issues</td>
+            <td><input type="text"></td>
+        </tr>
+    </table>
+
+    <h2>7. Shift-Specific Checklist</h2>
+    <table>
+        <tr>
+            <th>Morning Shift</th>
+            <th>Evening Shift</th>
+            <th>Night Audit</th>
+        </tr>
+        <tr>
+            <td><label><input type="checkbox"> Review Night Audit Pass Down</label></td>
+            <td><label><input type="checkbox"> Review Morning Shift Pass Down</label></td>
+            <td><label><input type="checkbox"> Review Evening Shift Pass Down</label></td>
+        </tr>
+        <tr>
+            <td><label><input type="checkbox"> Print Emergency Reports</label></td>
+            <td><label><input type="checkbox"> Print Emergency Reports</label></td>
+            <td><label><input type="checkbox"> Print Emergency Reports</label></td>
+        </tr>
+        <tr>
+            <td><label><input type="checkbox"> Set The House / 3rd Party</label></td>
+            <td><label><input type="checkbox"> Housekeeping Status Updates</label></td>
+            <td><label><input type="checkbox"> Run and Verify Audit</label></td>
+        </tr>
+        <tr>
+            <td><label><input type="checkbox"> Manage Island</label></td>
+            <td><label><input type="checkbox"> Manage Island</label></td>
+            <td><label><input type="checkbox"> Settle Accounts / SAVIE &amp; A3 / Email Reports</label></td>
+        </tr>
+    </table>
+
+    <h2 class="required-follow-up">8. Outstanding Tasks for Next Shift [REQUIRED FOLLOW UP!]</h2>
+<div id="section9">
+  <div class="task-line"><span>&bull;</span><textarea rows="1" placeholder="Outstanding task" oninput="autoGrowTextArea(this)"></textarea></div>
+  <div class="task-line"><span>&bull;</span><textarea rows="1" placeholder="Outstanding task" oninput="autoGrowTextArea(this)"></textarea></div>
+</div>
+<button type="button" class="secondary" onclick="addBulletLine('section9')">+ Add Another Item</button>
+<h2>9. Shift Summary</h2>
+    <textarea class="large-textarea" placeholder="Briefly summarize the shift, major concerns, wins, or items leadership should be aware of."></textarea>
+
+    <div class="footer">
+        Daily Front Desk Pass Down Form
+    </div>
+
+</div>
+</body>
+</html>
