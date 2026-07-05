@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <title>Daily Front Desk Pass Down</title>
-<!-- Fixed autosave restore so checkbox boolean values cannot appear in text areas. -->
+<!-- Fixed autosave restore so checkbox boolean values cannot appear in text areas. Mobile layout optimized for phones. -->
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
 :root {
@@ -237,6 +237,209 @@ input[type="radio"] {
     font-size: 12px;
     color: #5b6778;
     text-align: center;
+}
+
+
+/* Mobile optimization added: stacks fields and prevents squeezed text on phones. */
+@media screen and (max-width: 700px) {
+    html {
+        -webkit-text-size-adjust: 100%;
+        text-size-adjust: 100%;
+    }
+
+    body {
+        padding: 8px;
+        background: #ffffff;
+        font-size: 16px;
+    }
+
+    .page {
+        width: 100%;
+        max-width: none;
+        margin: 0;
+        padding: 12px;
+        border: none;
+        box-shadow: none;
+    }
+
+    .topbar {
+        padding: 14px;
+        margin-bottom: 12px;
+        border-radius: 8px;
+    }
+
+    .topbar h1 {
+        font-size: 22px;
+        line-height: 1.2;
+    }
+
+    .topbar p {
+        font-size: 14px;
+        line-height: 1.35;
+    }
+
+    .actions {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 8px;
+        margin: 12px 0 16px;
+    }
+
+    button {
+        width: 100%;
+        min-height: 44px;
+        padding: 12px 14px;
+        font-size: 16px;
+        border-radius: 8px;
+    }
+
+    .autosave-status {
+        justify-content: center;
+        margin-left: 0;
+        white-space: normal;
+        font-size: 13px;
+    }
+
+    .note {
+        font-size: 14px;
+        line-height: 1.4;
+        padding: 10px;
+    }
+
+    h2 {
+        font-size: 17px;
+        line-height: 1.25;
+        margin: 20px 0 10px;
+        padding: 10px;
+        border-left-width: 5px;
+    }
+
+    table,
+    tbody,
+    tr,
+    th,
+    td {
+        display: block;
+        width: 100% !important;
+    }
+
+    table {
+        border-collapse: separate;
+        border-spacing: 0;
+        margin-bottom: 14px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    tr {
+        border-bottom: 1px solid var(--border);
+    }
+
+    tr:last-child {
+        border-bottom: none;
+    }
+
+    th,
+    td {
+        border: none;
+        padding: 8px 10px;
+    }
+
+    th {
+        font-size: 15px;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .label,
+    .compact-staffing .label {
+        width: 100% !important;
+        white-space: normal;
+        padding-bottom: 4px;
+        font-size: 13px;
+        color: var(--blue);
+        background: #f5f9fd;
+        border-top: 1px solid var(--border);
+    }
+
+    tr .label:first-child {
+        border-top: none;
+    }
+
+    input[type="text"],
+    input[type="date"],
+    input[type="time"],
+    input[type="number"],
+    select,
+    textarea {
+        min-height: 44px;
+        padding: 10px;
+        font-size: 16px;
+        line-height: 1.35;
+        border-radius: 7px;
+    }
+
+    textarea {
+        min-height: 96px;
+    }
+
+    .large-textarea {
+        min-height: 150px;
+    }
+
+    .task-line {
+        grid-template-columns: 16px minmax(0, 1fr);
+        gap: 6px;
+        margin-bottom: 10px;
+    }
+
+    .task-line span {
+        padding-top: 10px;
+    }
+
+    .task-line textarea {
+        min-height: 48px;
+        overflow: hidden;
+    }
+
+    label {
+        display: inline-flex;
+        align-items: center;
+        min-height: 36px;
+        margin-right: 10px;
+        margin-bottom: 4px;
+        line-height: 1.25;
+    }
+
+    input[type="checkbox"],
+    input[type="radio"] {
+        transform: scale(1.25);
+        margin-right: 8px;
+        flex: 0 0 auto;
+    }
+
+    .footer {
+        margin-top: 18px;
+        padding-bottom: 8px;
+    }
+}
+
+@media screen and (max-width: 420px) {
+    body {
+        padding: 0;
+    }
+
+    .page {
+        padding: 10px;
+    }
+
+    .topbar h1 {
+        font-size: 20px;
+    }
+
+    h2 {
+        font-size: 16px;
+    }
 }
 
 @media print {
