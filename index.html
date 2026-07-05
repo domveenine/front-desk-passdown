@@ -396,6 +396,36 @@
   }
 }
 
+
+/* Cash handling status colors */
+.cash-notes-balanced {
+    background: #dff5e1 !important;
+    border-color: #2e7d32 !important;
+}
+.cash-notes-over {
+    background: #fff3cd !important;
+    border-color: #b7791f !important;
+}
+.cash-notes-short {
+    background: #f8d7da !important;
+    border-color: #b00020 !important;
+}
+
+
+.autosave-status{
+    display: inline-flex;
+    align-items: center;
+    align-self: center;
+    font-size: 12px;
+    color: #5b6778;
+    margin-left: 4px;
+    white-space: nowrap;
+}
+
+.autosave-status strong{
+    color: var(--blue);
+}
+
 </style>
 <script>
 
@@ -408,7 +438,70 @@ function createBulletTextarea(placeholderText) {
 }
 
 function saveAsPDF() {
+    if (!validateCashHandlingNotes()) {
+        return;
+    }
+    saveFormData();
     window.print();
+}
+
+
+function formatDollarAmount(value) {
+    const cleaned = String(value || "").replace(/[^0-9.]/g, "");
+    const number = parseFloat(cleaned);
+    if (isNaN(number)) {
+        return "";
+    }
+    return "$" + number.toFixed(2);
+}
+
+function updateCashHandlingStatus() {
+    const status = document.getElementById("cashBalanceStatus");
+    const notes = document.getElementById("cashHandlingNotes");
+    if (!status || !notes) return;
+
+    notes.classList.remove("cash-notes-balanced", "cash-notes-over", "cash-notes-short");
+    notes.required = false;
+
+    if (status.value === "Balanced") {
+        notes.value = "$0.00";
+        notes.classList.add("cash-notes-balanced");
+        notes.required = false;
+        notes.placeholder = "$0.00";
+    } else if (status.value === "Over") {
+        if (notes.value === "$0.00") notes.value = "";
+        notes.classList.add("cash-notes-over");
+        notes.required = true;
+        notes.placeholder = "Enter Amount Over";
+    } else if (status.value === "Short") {
+        if (notes.value === "$0.00") notes.value = "";
+        notes.classList.add("cash-notes-short");
+        notes.required = true;
+        notes.placeholder = "Enter Amount Short";
+    }
+}
+
+function validateCashHandlingNotes() {
+    const status = document.getElementById("cashBalanceStatus");
+    const notes = document.getElementById("cashHandlingNotes");
+    if (!status || !notes) return true;
+
+    if (status.value === "Over" || status.value === "Short") {
+        const dollarPattern = /^\$?\d+(\.\d{2})?$/;
+        if (!notes.value.trim() || !dollarPattern.test(notes.value.trim())) {
+            notes.focus();
+            alert("Please enter a dollar amount for Cash Handling Notes, such as $5.00.");
+            return false;
+        }
+        notes.value = formatDollarAmount(notes.value);
+    }
+
+    if (status.value === "Balanced") {
+        notes.value = "$0.00";
+    }
+
+    updateCashHandlingStatus();
+    return true;
 }
 
 
@@ -432,6 +525,9 @@ function clearForm() {
     } catch (e) {}
 
     setCurrentDateAndShift();
+    const cashStatus = document.getElementById("cashBalanceStatus");
+    if (cashStatus) cashStatus.value = "Balanced";
+    updateCashHandlingStatus();
 }
 
 function formatLocalDate(date) {
@@ -488,7 +584,10 @@ function setCurrentDateAndShift() {
     updateShiftTime();
 }
 
-window.addEventListener("DOMContentLoaded", setCurrentDateAndShift);
+window.addEventListener("DOMContentLoaded", () => {
+    setCurrentDateAndShift();
+    updateCashHandlingStatus();
+});
 
 
 function addPassdownLine() {
@@ -501,17 +600,36 @@ function addPassdownLine() {
 }
 
 function addBulletLine(containerId){
- const c=document.getElementById(containerId);
- const row=document.createElement('div');
- row.className='task-line';
- const placeholder = containerId === 'section9' ? 'Outstanding task' : 'Item';
- row.innerHTML=createBulletTextarea(placeholder);
- c.appendChild(row);
+    const c = document.getElementById(containerId);
+    if (!c) return;
+
+    const row = document.createElement('div');
+    row.className = 'task-line';
+
+    let placeholder = 'Item';
+    if (containerId === 'section5') {
+        placeholder = 'VIP, arrival, or housekeeping note';
+    } else if (containerId === 'section9') {
+        placeholder = 'Outstanding task requiring follow up';
+    }
+
+    row.innerHTML = createBulletTextarea(placeholder);
+    c.appendChild(row);
 }
 
 
 // Auto-save form data every 1 minute using localStorage
 const AUTO_SAVE_KEY = "frontDeskPassdownAutoSave";
+const AUTO_SAVE_TIME_KEY = "frontDeskPassdownLastAutoSave";
+
+function updateLastAutoSaveDisplay(ts){
+    const el=document.getElementById("lastAutoSave");
+    if(!el) return;
+    if(!ts){ el.textContent="Not yet saved"; return; }
+    const d=new Date(ts);
+    el.textContent=d.toLocaleTimeString([], {hour:'numeric', minute:'2-digit'});
+}
+
 
 function saveFormData() {
     const data = {};
@@ -524,6 +642,9 @@ function saveFormData() {
         }
     });
     localStorage.setItem(AUTO_SAVE_KEY, JSON.stringify(data));
+const ts=new Date().toISOString();
+localStorage.setItem(AUTO_SAVE_TIME_KEY, ts);
+updateLastAutoSaveDisplay(ts);
 }
 
 function restoreFormData() {
@@ -544,17 +665,58 @@ function restoreFormData() {
 
 window.addEventListener("DOMContentLoaded", () => {
     restoreFormData();
+    updateLastAutoSaveDisplay(localStorage.getItem(AUTO_SAVE_TIME_KEY));
     setInterval(saveFormData, 60000);
+    updateCashHandlingStatus();
+    const cashStatus = document.getElementById("cashBalanceStatus");
+    const cashNotes = document.getElementById("cashHandlingNotes");
+    if (cashStatus) cashStatus.addEventListener("change", () => { updateCashHandlingStatus(); saveFormData(); });
+    if (cashNotes) cashNotes.addEventListener("blur", () => {
+        if ((cashStatus && (cashStatus.value === "Over" || cashStatus.value === "Short")) && cashNotes.value.trim()) {
+            cashNotes.value = formatDollarAmount(cashNotes.value);
+            saveFormData();
+        }
+    });
     document.querySelectorAll("input, textarea, select").forEach(el=>{
         el.addEventListener("change", saveFormData);
     });
+});
+
+
+document.addEventListener("DOMContentLoaded", () => {
+  ["Mobile Key Room Ready Notifications","Mobile Key Delivery Rate"].forEach(label=>{
+    const td=[...document.querySelectorAll("td.label")].find(e=>e.textContent.trim()===label);
+    if(!td) return;
+    const input=td.nextElementSibling.querySelector("input");
+    if(!input) return;
+    input.addEventListener("blur",()=>{
+      let v=input.value.trim().replace("%","");
+      if(v!=="" && !v.endsWith("%")) input.value=v+"%";
+    });
+  });
+});
+
+
+function formatBankCount() {
+    const input = document.getElementById("bankCount");
+    if (!input || !input.value.trim()) return;
+    input.value = formatDollarAmount(input.value);
+}
+
+window.addEventListener("DOMContentLoaded", () => {
+    const bank = document.getElementById("bankCount");
+    if (bank) {
+        bank.addEventListener("blur", () => {
+            formatBankCount();
+            saveFormData();
+        });
+    }
 });
 
 </script>
 </head>
 <body>
 <div class="page">
-
     <div class="topbar">
         <h1>Daily Front Desk Pass Down</h1>
         <p>Interactive form for Morning Shift, Evening Shift, and Night Audit</p>
@@ -565,6 +727,7 @@ window.addEventListener("DOMContentLoaded", () => {
         
         
         <button class="secondary" onclick="clearForm()">Clear Form</button>
+        <div class="autosave-status">Last Auto Save: <strong id="lastAutoSave">Not yet saved</strong></div>
     </div>
 
     <div class="note">Complete the form, then select <strong>Download PDF</strong> to save a copy of the completed form.<br><br>To share it, create a new Outlook email, attach the saved PDF, and send it to the appropriate recipients.</div>
@@ -659,7 +822,7 @@ window.addEventListener("DOMContentLoaded", () => {
     <table>
         <tr>
             <td class="label">Bank Count</td>
-            <td><input type="text" placeholder="Example: $200"></td>
+            <td><input type="text" id="bankCount" placeholder="$0.00" inputmode="decimal"></td>
             <td class="label">Cash Drop Completed</td>
             <td>
                 <label><input type="radio" name="cashdrop"> Yes</label>
@@ -668,13 +831,16 @@ window.addEventListener("DOMContentLoaded", () => {
             </td>
         </tr>
         <tr>
-            <td class="label">Cash Count Balanced</td>
+            <td class="label">Cash Count Status</td>
             <td>
-                <label><input type="radio" name="balanced"> Yes</label>
-                <label><input type="radio" name="balanced"> No</label>
+                <select id="cashBalanceStatus" name="cashBalanceStatus" onchange="updateCashHandlingStatus()">
+                    <option value="Balanced" selected>Balanced</option>
+                    <option value="Over">Over</option>
+                    <option value="Short">Short</option>
+                </select>
             </td>
             <td class="label">Cash Handling Notes</td>
-            <td><input type="text"></td>
+            <td><input type="text" id="cashHandlingNotes" name="cashHandlingNotes" value="$0.00" inputmode="decimal"></td>
         </tr>
     </table>
     <textarea placeholder="Enter any cash count issues, drawer issues, over/short notes, safe concerns, or deposit notes."></textarea>
@@ -683,19 +849,21 @@ window.addEventListener("DOMContentLoaded", () => {
     <table>
         <tr>
             <td class="label">Mobile Key Room Ready Notifications</td>
-            <td><input type="text" placeholder="Example: 91%"></td>
+            <td><input type="text" placeholder="Example: 91%" inputmode="numeric"></td>
             <td class="label">Mobile Key Delivery Rate</td>
-            <td><input type="text" placeholder="Example: 76%"></td>
+            <td><input type="text" placeholder="Example: 76%" inputmode="numeric"></td>
         </tr>
         <tr>
-            <td class="label">GXP Completed</td>
+            <td class="label">GXP Caught Up?</td>
             <td>
                 <label><input type="radio" name="gxp"> Yes</label>
                 <label><input type="radio" name="gxp"> No</label>
-                <label><input type="radio" name="gxp"> In Progress</label>
             </td>
-            <td class="label">Digital Check-In Issues</td>
-            <td><input type="text"></td>
+            <td class="label">Digital Check-In Caught Up?</td>
+            <td>
+                <label><input type="radio" name="digitalcheckin"> Yes</label>
+                <label><input type="radio" name="digitalcheckin"> No</label>
+            </td>
         </tr>
     </table>
 
@@ -730,8 +898,8 @@ window.addEventListener("DOMContentLoaded", () => {
 
     <h2 class="required-follow-up">8. Outstanding Tasks for Next Shift [REQUIRED FOLLOW UP!]</h2>
 <div id="section9">
-  <div class="task-line"><span>&bull;</span><textarea rows="1" placeholder="Outstanding task" oninput="autoGrowTextArea(this)"></textarea></div>
-  <div class="task-line"><span>&bull;</span><textarea rows="1" placeholder="Outstanding task" oninput="autoGrowTextArea(this)"></textarea></div>
+  <div class="task-line"><span>&bull;</span><textarea rows="1" placeholder="Outstanding task requiring follow up" oninput="autoGrowTextArea(this)"></textarea></div>
+  <div class="task-line"><span>&bull;</span><textarea rows="1" placeholder="Outstanding task requiring follow up" oninput="autoGrowTextArea(this)"></textarea></div>
 </div>
 <button type="button" class="secondary" onclick="addBulletLine('section9')">+ Add Another Item</button>
 <h2>9. Shift Summary</h2>
